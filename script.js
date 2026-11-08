@@ -12,12 +12,12 @@ const settingsButton = document.getElementById("settings-button");
 const creditsButton = document.getElementById("credits-button");
 const exitButton = document.getElementById("exit-button");
 const scene = document.getElementById("neocity-scene");
+const sceneVisual = document.getElementById("scene-visual");
 const player = document.getElementById("player");
 
 mainContent.style.display = "none";
 document.body.style.overflow = "hidden";
 
-// A straightforward transition + timer approach avoids Web Animations API timing.
 const TIMING = Object.freeze({
     fadeToBlack: 1800,
     titleIn: 900,
@@ -45,7 +45,7 @@ function makeOverlay() {
         "position:fixed", "inset:0", "z-index:2147483647",
         "display:flex", "align-items:center", "justify-content:center",
         "padding:24px", "background:#000000", "opacity:0",
-        "transition:opacity 1800ms ease-in-out", "pointer-events:all"
+        `transition:opacity ${TIMING.fadeToBlack}ms ease-in-out`, "pointer-events:all"
     ].join(";");
 
     const title = document.createElement("h1");
@@ -55,7 +55,7 @@ function makeOverlay() {
         'font:400 clamp(28px,5vw,58px)/1.2 Georgia,"Times New Roman",serif',
         "letter-spacing:.045em", "text-align:center",
         "text-shadow:0 0 22px rgba(232,220,196,.14)",
-        "opacity:0", "transition:opacity 900ms ease-in-out"
+        "opacity:0", `transition:opacity ${TIMING.titleIn}ms ease-in-out`
     ].join(";");
     overlay.append(title);
     document.body.append(overlay);
@@ -64,14 +64,20 @@ function makeOverlay() {
 
 function setOpacity(element, value, duration) {
     element.style.transitionDuration = `${duration}ms`;
-    // Force the initial opacity to be laid out before changing it.
     void element.offsetWidth;
     element.style.opacity = String(value);
 }
 
+function clampPlayerToScene() {
+    const maxX = Math.max(0, sceneVisual.clientWidth - player.offsetWidth);
+    const maxY = Math.max(0, sceneVisual.clientHeight - player.offsetHeight);
+    position.x = Math.max(0, Math.min(position.x, maxX));
+    position.y = Math.max(0, Math.min(position.y, maxY));
+}
+
 function placePlayer() {
-    position.x = Math.max(0, (innerWidth - player.offsetWidth) / 2);
-    position.y = Math.max(0, innerHeight - player.offsetHeight - 72);
+    position.x = Math.max(0, (sceneVisual.clientWidth - player.offsetWidth) / 2);
+    position.y = Math.max(0, sceneVisual.clientHeight - player.offsetHeight - 24);
     drawPlayer();
 }
 
@@ -92,8 +98,7 @@ function runMovement(now) {
     if (pressed.has("ArrowLeft") || pressed.has("a") || pressed.has("A")) position.x -= step;
     if (pressed.has("ArrowRight") || pressed.has("d") || pressed.has("D")) position.x += step;
 
-    position.x = Math.max(0, Math.min(position.x, innerWidth - player.offsetWidth));
-    position.y = Math.max(0, Math.min(position.y, innerHeight - player.offsetHeight));
+    clampPlayerToScene();
     drawPlayer();
     frameId = requestAnimationFrame(runMovement);
 }
@@ -104,7 +109,6 @@ async function startGame() {
     startButton.disabled = true;
     const { overlay, title } = makeOverlay();
 
-    // Cover the complete old menu with an independent, pitch-black layer.
     setOpacity(overlay, 1, TIMING.fadeToBlack);
     loadingScreen.style.transition = `opacity ${TIMING.fadeToBlack}ms ease-in-out`;
     loadingScreen.style.opacity = "0";
@@ -116,17 +120,15 @@ async function startGame() {
     setOpacity(title, 0, TIMING.titleOut);
     await pause(TIMING.titleOut + TIMING.blackPause);
 
-    // Prepare the scene while the overlay is still fully black.
     mainContent.style.display = "block";
     scene.style.opacity = "1";
     placePlayer();
-    await pause(80);
+    await pause(100);
 
     setOpacity(overlay, 0, TIMING.sceneIn);
     await pause(TIMING.sceneIn);
     overlay.remove();
 
-    // Input becomes active only after the scene has completely appeared.
     canMove = true;
     runMovement.previous = null;
     frameId = requestAnimationFrame(runMovement);
@@ -142,8 +144,7 @@ document.addEventListener("keyup", (event) => pressed.delete(event.key));
 window.addEventListener("blur", () => pressed.clear());
 window.addEventListener("resize", () => {
     if (!canMove) return;
-    position.x = Math.max(0, Math.min(position.x, innerWidth - player.offsetWidth));
-    position.y = Math.max(0, Math.min(position.y, innerHeight - player.offsetHeight));
+    clampPlayerToScene();
     drawPlayer();
 });
 

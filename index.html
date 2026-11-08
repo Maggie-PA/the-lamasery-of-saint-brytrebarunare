@@ -4,8 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Lamasery of Saint Brytrebarunare</title>
-    <link rel="stylesheet" href="style.css?v=20261108-4">
-    <link rel="stylesheet" href="scene.css?v=20261108-4">
+    <link rel="stylesheet" href="style.css?v=20261108-5">
+    <link rel="stylesheet" href="scene.css?v=20261108-5">
 </head>
 <body>
     <div id="loading-screen">
@@ -29,27 +29,38 @@
 
     <main id="main-content" aria-label="Game">
         <section id="neocity-scene" class="neocity-scene" aria-label="NeoCity — Arrival">
-            <div class="city-atmosphere" aria-hidden="true"></div>
-            <div class="city-moon" aria-hidden="true"></div>
-            <div class="city-skyline" aria-hidden="true">
-                <div class="skyline-building building-one"></div>
-                <div class="skyline-building building-two"></div>
-                <div class="skyline-building building-three"></div>
-                <div class="skyline-building building-four"></div>
-                <div class="skyline-building building-five"></div>
+            <div class="scene-visual" id="scene-visual">
+                <div class="city-atmosphere" aria-hidden="true"></div>
+                <div class="city-moon" aria-hidden="true"></div>
+                <div class="city-skyline" aria-hidden="true">
+                    <div class="skyline-building building-one"></div>
+                    <div class="skyline-building building-two"></div>
+                    <div class="skyline-building building-three"></div>
+                    <div class="skyline-building building-four"></div>
+                    <div class="skyline-building building-five"></div>
+                </div>
+                <div class="city-ground" aria-hidden="true"></div>
+                <header class="scene-heading">
+                    <p class="scene-kicker">THE INFINITE CITY</p>
+                    <h1>NeoCity <span>— Arrival</span></h1>
+                </header>
+                <div id="player" class="player" role="img" aria-label="Player character">
+                    <span class="player-glow"></span>
+                    <span class="player-head"></span>
+                    <span class="player-body"></span>
+                </div>
             </div>
-            <div class="city-ground" aria-hidden="true"></div>
-            <header class="scene-heading">
-                <p class="scene-kicker">THE INFINITE CITY</p>
-                <h1>NeoCity <span>— Arrival</span></h1>
-            </header>
-            <p class="movement-hint">WASD or arrow keys to move</p>
-            <div id="player" class="player" role="img" aria-label="Player character">
-                <span class="player-glow"></span><span class="player-head"></span><span class="player-body"></span>
-            </div>
+
+            <section class="dialogue-panel" aria-label="Dialogue" aria-live="polite">
+                <div class="dialogue-content">
+                    <p class="dialogue-speaker">Narrator</p>
+                    <p class="dialogue-text">The world is young. A vast horizon waits beneath the ancient sky.</p>
+                </div>
+                <p class="dialogue-hint">WASD or arrow keys to move</p>
+            </section>
         </section>
     </main>
 
-    <script src="script.js?v=20261108-4"></script>
+    <script src="script.js?v=20261108-5"></script>
 </body>
 </html>
