@@ -1,6 +1,6 @@
 /* ======================================================
    FULL-SCREEN GAME SCENE
-   Upper 70%: environment / lower 30%: dialogue
+   Upper 70%: submitted planet image / lower 30%: dialogue
 ====================================================== */
 
 #main-content {
@@ -22,92 +22,37 @@
     background: #080b16;
 }
 
-/* Top 70%: environment, image, and player. */
+/* The supplied planet artwork fills the entire upper 70% area. */
 .scene-visual {
     position: relative;
     min-width: 0;
     min-height: 0;
     overflow: hidden;
     isolation: isolate;
-    background:
-        radial-gradient(ellipse at 50% 82%, rgba(52, 94, 128, 0.28), transparent 55%),
-        linear-gradient(180deg, #080b17 0%, #171a31 58%, #30253a 100%);
+    background-color: #120b0b;
+    background-image:
+        linear-gradient(180deg, rgba(8, 8, 15, 0.06) 45%, rgba(8, 7, 12, 0.45) 100%),
+        url("images/planet-earth-4-54-billion-years-ago.jpg");
+    background-position: center 45%;
+    background-size: cover;
+    background-repeat: no-repeat;
+}
+
+/* The uploaded planet is the scene art; hide the temporary city mockup. */
+.city-atmosphere,
+.city-moon,
+.city-skyline,
+.city-ground {
+    display: none;
 }
 
 .scene-visual::after {
     position: absolute;
-    z-index: 2;
+    z-index: 1;
     inset: 45% 0 0;
     content: "";
     pointer-events: none;
-    background: linear-gradient(180deg, transparent, rgba(6, 7, 14, 0.36));
-}
-
-.city-atmosphere {
-    position: absolute;
-    z-index: 0;
-    inset: 0;
-    opacity: 0.72;
-    background-image:
-        radial-gradient(1px 1px at 12% 18%, #fff 50%, transparent 100%),
-        radial-gradient(1px 1px at 27% 32%, #d7d9ed 50%, transparent 100%),
-        radial-gradient(2px 2px at 74% 14%, #fff 50%, transparent 100%),
-        radial-gradient(1px 1px at 88% 40%, #d7d9ed 50%, transparent 100%),
-        radial-gradient(1px 1px at 62% 27%, #fff 50%, transparent 100%);
-}
-
-.city-moon {
-    position: absolute;
-    z-index: 1;
-    top: 12%;
-    right: 18%;
-    width: clamp(48px, 7vw, 100px);
-    aspect-ratio: 1;
-    border-radius: 50%;
-    background: #ddd4c3;
-    box-shadow: 0 0 32px rgba(205, 200, 190, 0.24), 0 0 100px rgba(184, 176, 202, 0.12);
-}
-
-.city-skyline {
-    position: absolute;
-    z-index: 1;
-    inset: 25% 0 0;
-    display: flex;
-    align-items: flex-end;
-    justify-content: space-around;
-    gap: 1.5vw;
-    padding: 0 4vw;
-}
-
-.skyline-building {
-    position: relative;
-    flex: 1 1 15%;
-    max-width: 230px;
-    min-width: 38px;
-    height: 66%;
-    border: 1px solid rgba(146, 158, 194, 0.2);
-    background:
-        repeating-linear-gradient(90deg, transparent 0 18px, rgba(164, 173, 195, 0.13) 19px 21px),
-        repeating-linear-gradient(0deg, #161a2c 0 25px, #20243a 26px 29px);
-    box-shadow: inset 0 0 35px rgba(5, 7, 17, 0.7), 0 0 25px rgba(10, 12, 27, 0.5);
-    clip-path: polygon(8% 0, 92% 0, 100% 100%, 0 100%);
-}
-
-.building-one { height: 53%; }
-.building-two { height: 78%; }
-.building-three { height: 64%; }
-.building-four { height: 91%; }
-.building-five { height: 58%; }
-
-.city-ground {
-    position: absolute;
-    z-index: 1;
-    inset: auto 0 0;
-    height: 15%;
-    border-top: 1px solid rgba(205, 174, 135, 0.28);
-    background:
-        linear-gradient(180deg, rgba(75, 58, 68, 0.6), #10121e 22%),
-        repeating-linear-gradient(90deg, transparent 0 13%, rgba(163, 147, 147, 0.1) 13.1% 13.25%, transparent 13.4% 25%);
+    background: linear-gradient(180deg, transparent, rgba(6, 7, 14, 0.25));
 }
 
 .scene-heading {
@@ -115,12 +60,13 @@
     z-index: 3;
     top: clamp(22px, 5vh, 58px);
     left: clamp(22px, 5vw, 72px);
-    text-shadow: 0 2px 16px #080b16;
+    color: #fff4e6;
+    text-shadow: 0 2px 16px #08030a, 0 0 24px rgba(0, 0, 0, 0.65);
 }
 
 .scene-kicker {
     margin-bottom: 8px;
-    color: #c8a878;
+    color: #f0c58f;
     font: 12px/1.4 Georgia, serif;
     letter-spacing: 0.3em;
 }
@@ -131,7 +77,7 @@
 }
 
 .scene-heading h1 span {
-    color: #c8c0b4;
+    color: #f0d7c4;
     font-style: italic;
 }
 
@@ -176,7 +122,7 @@
     clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%);
 }
 
-/* Bottom 30% dialogue panel with warm luminous edges. */
+/* Bottom 30% dialogue box with a soft golden glow around all edges. */
 .dialogue-panel {
     position: relative;
     z-index: 5;
@@ -188,24 +134,21 @@
     min-height: 0;
     overflow-y: auto;
     padding: clamp(20px, 3.2vw, 42px) clamp(22px, 5vw, 72px);
-    border: 1px solid rgba(214, 179, 122, 0.72);
-    background: linear-gradient(135deg, rgba(31, 25, 28, 0.99), rgba(11, 12, 20, 1));
+    border: 1px solid rgba(235, 190, 126, 0.82);
+    background: linear-gradient(135deg, #20191c, #0b0c14 80%);
     box-shadow:
-        0 -3px 22px rgba(214, 179, 122, 0.22),
-        0 0 18px rgba(214, 179, 122, 0.28),
-        inset 0 0 24px rgba(214, 179, 122, 0.07);
+        0 0 9px rgba(255, 195, 115, 0.54),
+        0 0 25px rgba(255, 143, 63, 0.28),
+        inset 0 0 24px rgba(214, 150, 87, 0.1);
 }
 
 .dialogue-panel::before {
     position: absolute;
-    top: -2px;
-    right: 0;
-    left: 0;
-    height: 2px;
+    inset: 0;
+    border: 1px solid rgba(255, 224, 172, 0.36);
     content: "";
     pointer-events: none;
-    background: linear-gradient(90deg, transparent, #f1d29a 18%, #fff0cf 50%, #f1d29a 82%, transparent);
-    box-shadow: 0 0 10px rgba(255, 220, 160, 0.9), 0 0 24px rgba(214, 179, 122, 0.65);
+    box-shadow: inset 0 0 12px rgba(255, 193, 111, 0.16);
 }
 
 .dialogue-content {
@@ -214,21 +157,21 @@
 
 .dialogue-speaker {
     margin-bottom: 12px;
-    color: #d6b37a;
+    color: #e9bd7e;
     font: 600 clamp(15px, 1.7vw, 19px)/1.3 Georgia, serif;
     letter-spacing: 0.09em;
     text-transform: uppercase;
 }
 
 .dialogue-text {
-    color: #eee8dc;
+    color: #f1e8dc;
     font: 400 clamp(16px, 2vw, 23px)/1.65 Georgia, serif;
 }
 
 .dialogue-hint {
     flex: 0 0 auto;
     align-self: flex-end;
-    color: rgba(232, 224, 212, 0.56);
+    color: rgba(232, 224, 212, 0.6);
     font: 12px/1.4 Georgia, serif;
     letter-spacing: 0.06em;
     text-align: right;
@@ -237,7 +180,6 @@
 @media (max-width: 700px) {
     .scene-heading { top: 18px; left: 20px; }
     .scene-kicker { font-size: 10px; }
-    .city-skyline { inset-inline: -10%; gap: 8px; padding-inline: 5vw; }
     .dialogue-panel {
         flex-direction: column;
         justify-content: flex-start;
