@@ -1,6 +1,6 @@
 /* ======================================================
    THE LAMASERY OF SAINT BRYTREBARUNARE
-   MAIN MENU + CINEMATIC ARRIVAL SEQUENCE
+   MAIN MENU + SIMPLE CSS-TRANSITION ARRIVAL SEQUENCE
 ====================================================== */
 
 console.log("Welcome to The Lamasery of Saint Brytrebarunare!");
@@ -17,182 +17,141 @@ const player = document.getElementById("player");
 mainContent.style.display = "none";
 document.body.style.overflow = "hidden";
 
-const SCENE_TRANSITION = Object.freeze({
+// A straightforward transition + timer approach avoids Web Animations API timing.
+const TIMING = Object.freeze({
     fadeToBlack: 1800,
-    titleFadeIn: 900,
+    titleIn: 900,
     titleHold: 2200,
-    titleFadeOut: 850,
+    titleOut: 850,
     blackPause: 650,
-    sceneFadeIn: 1800
+    sceneIn: 1800
 });
+const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
-const wait = (milliseconds) =>
-    new Promise((resolve) => window.setTimeout(resolve, milliseconds));
-
-function fade(element, startOpacity, endOpacity, duration) {
-    if (!element) return Promise.resolve();
-    element.style.opacity = String(startOpacity);
-    const animation = element.animate(
-        [{ opacity: startOpacity }, { opacity: endOpacity }],
-        { duration, easing: "ease-in-out", fill: "forwards" }
-    );
-
-    return animation.finished.then(() => {
-        element.style.opacity = String(endOpacity);
-        animation.cancel();
-    });
-}
-
-function createTitleOverlay(text) {
-    const overlay = document.createElement("div");
-    Object.assign(overlay.style, {
-        position: "fixed",
-        inset: "0",
-        zIndex: "2147483646",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        background: "#000000",
-        opacity: "0",
-        pointerEvents: "all"
-    });
-
-    const title = document.createElement("h1");
-    title.textContent = text;
-    Object.assign(title.style, {
-        margin: "0",
-        color: "#eee8dc",
-        fontFamily: 'Georgia, "Times New Roman", serif',
-        fontSize: "clamp(30px, 5vw, 58px)",
-        fontWeight: "400",
-        lineHeight: "1.2",
-        letterSpacing: "0.045em",
-        textAlign: "center",
-        textShadow: "0 0 22px rgba(232, 220, 196, 0.14)",
-        opacity: "0"
-    });
-
-    overlay.appendChild(title);
-    document.body.appendChild(overlay);
-    return { overlay, title };
-}
-
-let transitionStarted = false;
-let gameplayReady = false;
-let animationFrame = 0;
-const heldKeys = new Set();
-const playerPosition = { x: 0, y: 0 };
-const movementKeys = new Set([
+let started = false;
+let canMove = false;
+let frameId = 0;
+const pressed = new Set();
+const position = { x: 0, y: 0 };
+const directions = new Set([
     "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight",
     "w", "a", "s", "d", "W", "A", "S", "D"
 ]);
 
-function placePlayerAtStart() {
-    playerPosition.x = Math.max(0, (window.innerWidth - player.offsetWidth) / 2);
-    playerPosition.y = Math.max(0, window.innerHeight - player.offsetHeight - 72);
-    renderPlayerPosition();
+function makeOverlay() {
+    const overlay = document.createElement("div");
+    overlay.id = "cinematic-overlay";
+    overlay.style.cssText = [
+        "position:fixed", "inset:0", "z-index:2147483647",
+        "display:flex", "align-items:center", "justify-content:center",
+        "padding:24px", "background:#000000", "opacity:0",
+        "transition:opacity 1800ms ease-in-out", "pointer-events:all"
+    ].join(";");
+
+    const title = document.createElement("h1");
+    title.textContent = "Planet Earth: 4.54 Billion Years Ago";
+    title.style.cssText = [
+        "margin:0", "max-width:100%", "color:#eee8dc",
+        'font:400 clamp(28px,5vw,58px)/1.2 Georgia,"Times New Roman",serif',
+        "letter-spacing:.045em", "text-align:center",
+        "text-shadow:0 0 22px rgba(232,220,196,.14)",
+        "opacity:0", "transition:opacity 900ms ease-in-out"
+    ].join(";");
+    overlay.append(title);
+    document.body.append(overlay);
+    return { overlay, title };
 }
 
-function renderPlayerPosition() {
-    player.style.left = `${playerPosition.x}px`;
-    player.style.top = `${playerPosition.y}px`;
+function setOpacity(element, value, duration) {
+    element.style.transitionDuration = `${duration}ms`;
+    // Force the initial opacity to be laid out before changing it.
+    void element.offsetWidth;
+    element.style.opacity = String(value);
 }
 
-function startMovementLoop() {
-    let previousFrame = performance.now();
-
-    function update(now) {
-        if (!gameplayReady) return;
-
-        const deltaSeconds = Math.min((now - previousFrame) / 1000, 0.05);
-        previousFrame = now;
-        const distance = 220 * deltaSeconds;
-
-        if (heldKeys.has("ArrowUp") || heldKeys.has("w") || heldKeys.has("W")) playerPosition.y -= distance;
-        if (heldKeys.has("ArrowDown") || heldKeys.has("s") || heldKeys.has("S")) playerPosition.y += distance;
-        if (heldKeys.has("ArrowLeft") || heldKeys.has("a") || heldKeys.has("A")) playerPosition.x -= distance;
-        if (heldKeys.has("ArrowRight") || heldKeys.has("d") || heldKeys.has("D")) playerPosition.x += distance;
-
-        playerPosition.x = Math.max(0, Math.min(playerPosition.x, window.innerWidth - player.offsetWidth));
-        playerPosition.y = Math.max(0, Math.min(playerPosition.y, window.innerHeight - player.offsetHeight));
-        renderPlayerPosition();
-        animationFrame = requestAnimationFrame(update);
-    }
-
-    cancelAnimationFrame(animationFrame);
-    animationFrame = requestAnimationFrame(update);
+function placePlayer() {
+    position.x = Math.max(0, (innerWidth - player.offsetWidth) / 2);
+    position.y = Math.max(0, innerHeight - player.offsetHeight - 72);
+    drawPlayer();
 }
 
-async function beginStartGameSequence() {
-    if (transitionStarted) return;
-    transitionStarted = true;
+function drawPlayer() {
+    player.style.left = `${position.x}px`;
+    player.style.top = `${position.y}px`;
+}
+
+function runMovement(now) {
+    if (!canMove) return;
+    runMovement.previous ??= now;
+    const dt = Math.min((now - runMovement.previous) / 1000, 0.05);
+    runMovement.previous = now;
+    const step = 220 * dt;
+
+    if (pressed.has("ArrowUp") || pressed.has("w") || pressed.has("W")) position.y -= step;
+    if (pressed.has("ArrowDown") || pressed.has("s") || pressed.has("S")) position.y += step;
+    if (pressed.has("ArrowLeft") || pressed.has("a") || pressed.has("A")) position.x -= step;
+    if (pressed.has("ArrowRight") || pressed.has("d") || pressed.has("D")) position.x += step;
+
+    position.x = Math.max(0, Math.min(position.x, innerWidth - player.offsetWidth));
+    position.y = Math.max(0, Math.min(position.y, innerHeight - player.offsetHeight));
+    drawPlayer();
+    frameId = requestAnimationFrame(runMovement);
+}
+
+async function startGame() {
+    if (started) return;
+    started = true;
     startButton.disabled = true;
-    startButton.setAttribute("aria-disabled", "true");
+    const { overlay, title } = makeOverlay();
 
-    const { overlay, title } = createTitleOverlay("Planet Earth: 4.54 Billion Years Ago");
-
-    loadingScreen.style.transition = `opacity ${SCENE_TRANSITION.fadeToBlack}ms ease-in-out`;
+    // Cover the complete old menu with an independent, pitch-black layer.
+    setOpacity(overlay, 1, TIMING.fadeToBlack);
+    loadingScreen.style.transition = `opacity ${TIMING.fadeToBlack}ms ease-in-out`;
     loadingScreen.style.opacity = "0";
-    await fade(overlay, 0, 1, SCENE_TRANSITION.fadeToBlack);
+    await pause(TIMING.fadeToBlack);
+    loadingScreen.style.display = "none";
 
-    await fade(title, 0, 1, SCENE_TRANSITION.titleFadeIn);
-    await wait(SCENE_TRANSITION.titleHold);
-    await fade(title, 1, 0, SCENE_TRANSITION.titleFadeOut);
-    await wait(SCENE_TRANSITION.blackPause);
+    setOpacity(title, 1, TIMING.titleIn);
+    await pause(TIMING.titleIn + TIMING.titleHold);
+    setOpacity(title, 0, TIMING.titleOut);
+    await pause(TIMING.titleOut + TIMING.blackPause);
 
+    // Prepare the scene while the overlay is still fully black.
     mainContent.style.display = "block";
-    scene.style.transition = "opacity 1800ms ease-in-out";
     scene.style.opacity = "1";
-    scene.classList.add("is-active");
-    placePlayerAtStart();
+    placePlayer();
+    await pause(80);
 
-    await fade(overlay, 1, 0, SCENE_TRANSITION.sceneFadeIn);
+    setOpacity(overlay, 0, TIMING.sceneIn);
+    await pause(TIMING.sceneIn);
     overlay.remove();
 
-    gameplayReady = true;
-    startMovementLoop();
+    // Input becomes active only after the scene has completely appeared.
+    canMove = true;
+    runMovement.previous = null;
+    frameId = requestAnimationFrame(runMovement);
 }
 
-startButton.addEventListener("click", () => {
-    void beginStartGameSequence().catch((error) => {
-        console.error("Start Game sequence failed:", error);
-    });
-});
-
+startButton.addEventListener("click", startGame, { once: true });
 document.addEventListener("keydown", (event) => {
-    if (!gameplayReady || !movementKeys.has(event.key)) return;
+    if (!canMove || !directions.has(event.key)) return;
     event.preventDefault();
-    heldKeys.add(event.key);
+    pressed.add(event.key);
 });
-
-document.addEventListener("keyup", (event) => {
-    heldKeys.delete(event.key);
-});
-
-window.addEventListener("blur", () => heldKeys.clear());
+document.addEventListener("keyup", (event) => pressed.delete(event.key));
+window.addEventListener("blur", () => pressed.clear());
 window.addEventListener("resize", () => {
-    if (!gameplayReady) return;
-    playerPosition.x = Math.min(playerPosition.x, window.innerWidth - player.offsetWidth);
-    playerPosition.y = Math.min(playerPosition.y, window.innerHeight - player.offsetHeight);
-    renderPlayerPosition();
+    if (!canMove) return;
+    position.x = Math.max(0, Math.min(position.x, innerWidth - player.offsetWidth));
+    position.y = Math.max(0, Math.min(position.y, innerHeight - player.offsetHeight));
+    drawPlayer();
 });
 
-settingsButton.addEventListener("click", () => {
-    console.log("Settings selected.");
-    alert("Settings will be available soon.");
-});
-
-creditsButton.addEventListener("click", () => {
-    console.log("Credits selected.");
-    alert(
-        "The Lamasery of Saint Brytrebarunare\n\n" +
-        "Created with imagination, code and a little bit of divine intervention."
-    );
-});
-
+settingsButton.addEventListener("click", () => alert("Settings will be available soon."));
+creditsButton.addEventListener("click", () => alert(
+    "The Lamasery of Saint Brytrebarunare\n\n" +
+    "Created with imagination, code and a little bit of divine intervention."
+));
 exitButton.addEventListener("click", () => {
-    console.log("Exit selected.");
-    if (confirm("Do you want to leave The Lamasery?")) {
-        window.location.href = "about:blank";
-    }
+    if (confirm("Do you want to leave The Lamasery?")) window.location.href = "about:blank";
 });
