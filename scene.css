@@ -177,7 +177,7 @@
     pointer-events: all;
 }
 
-.scene-transition.is-opaque {
+.scene-transition.visible {
     opacity: 1;
 }
 
@@ -188,11 +188,11 @@
     text-align: center;
     text-shadow: 0 0 22px rgba(232, 220, 196, 0.14);
     opacity: 0;
-    transform: translateY(5px);
-    transition: opacity 850ms ease, transform 850ms ease;
+    transform: translateY(12px);
+    transition: opacity 900ms ease, transform 900ms ease;
 }
 
-.scene-transition.show-title .scene-title {
+.scene-transition.title-visible .scene-title {
     opacity: 1;
     transform: translateY(0);
 }
@@ -201,9 +201,4 @@
     .city-skyline { inset-inline: -12%; }
     .scene-heading { top: 28px; }
     .movement-hint { bottom: 18px; font-size: 11px; }
-}
-
-@media (prefers-reduced-motion: reduce) {
-    /* Preserve the requested cinematic beats while avoiding unnecessary motion effects. */
-    .scene-title { transform: none; }
 }
