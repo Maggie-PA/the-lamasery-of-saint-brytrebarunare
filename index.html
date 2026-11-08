@@ -1,4 +1,4 @@
-<<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -8,6 +8,7 @@
     <title>The Lamasery of Saint Brytrebarunare</title>
 
     <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="scene.css">
 </head>
 
 <body>
@@ -48,7 +49,6 @@
 
         </div>
 
-
         <!-- =========================
              MAIN MENU CONTENT
         ========================== -->
@@ -64,9 +64,6 @@
             <p class="subtitle">
                 An Infinite City between Antiquity and the Future!
             </p>
-
-
-            <!-- Menu -->
 
             <div class="menu">
 
@@ -92,17 +89,34 @@
 
     </div>
 
-
-    <!-- =========================
-         MAIN WEBSITE
-    ========================== -->
-
-    <main id="main-content">
-
-        <!-- The actual game will be built here later -->
-
+    <main id="main-content" aria-label="Game">
+        <section id="neocity-scene" class="neocity-scene" aria-label="NeoCity — Arrival">
+            <div class="city-atmosphere" aria-hidden="true"></div>
+            <div class="city-moon" aria-hidden="true"></div>
+            <div class="city-skyline" aria-hidden="true">
+                <div class="skyline-building building-one"></div>
+                <div class="skyline-building building-two"></div>
+                <div class="skyline-building building-three"></div>
+                <div class="skyline-building building-four"></div>
+                <div class="skyline-building building-five"></div>
+            </div>
+            <div class="city-ground" aria-hidden="true"></div>
+            <header class="scene-heading">
+                <p class="scene-kicker">THE INFINITE CITY</p>
+                <h1>NeoCity <span>— Arrival</span></h1>
+            </header>
+            <p class="movement-hint">WASD or arrow keys to move</p>
+            <div id="player" class="player" role="img" aria-label="Player character">
+                <span class="player-glow"></span>
+                <span class="player-head"></span>
+                <span class="player-body"></span>
+            </div>
+        </section>
     </main>
 
+    <div id="scene-transition" class="scene-transition" aria-hidden="true">
+        <h1 id="scene-title" class="scene-title">Lamasery - The Arrival</h1>
+    </div>
 
     <script src="script.js"></script>
 
