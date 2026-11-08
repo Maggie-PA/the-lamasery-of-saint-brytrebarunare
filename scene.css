@@ -1,6 +1,5 @@
 /* ======================================================
    CINEMATIC TRANSITION AND NEOCITY ARRIVAL SCENE
-   Kept separate from style.css to preserve the original menu styling.
 ====================================================== */
 
 #main-content {
@@ -14,16 +13,11 @@
     position: absolute;
     inset: 0;
     overflow: hidden;
+    opacity: 0;
     color: #e9e5d7;
     background:
         radial-gradient(ellipse at 50% 70%, rgba(52, 94, 128, 0.2), transparent 55%),
         linear-gradient(180deg, #080b17 0%, #171a31 55%, #30253a 100%);
-    opacity: 0;
-    transition: opacity 1.8s ease;
-}
-
-.neocity-scene.is-active {
-    opacity: 1;
 }
 
 .city-atmosphere {
@@ -161,44 +155,4 @@
     border: 1px solid rgba(222, 190, 153, 0.58);
     background: linear-gradient(90deg, #302a34, #73604d 50%, #302a34);
     clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%);
-}
-
-.scene-transition {
-    position: fixed;
-    z-index: 1000;
-    inset: 0;
-    display: none;
-    align-items: center;
-    justify-content: center;
-    padding: 24px;
-    opacity: 0;
-    background: #000000;
-    transition: opacity 1.8s ease;
-    pointer-events: all;
-}
-
-.scene-transition.visible {
-    opacity: 1;
-}
-
-.scene-title {
-    color: #eee8dc;
-    font: 400 clamp(30px, 5vw, 58px)/1.2 Georgia, "Times New Roman", serif;
-    letter-spacing: 0.045em;
-    text-align: center;
-    text-shadow: 0 0 22px rgba(232, 220, 196, 0.14);
-    opacity: 0;
-    transform: translateY(12px);
-    transition: opacity 900ms ease, transform 900ms ease;
-}
-
-.scene-transition.title-visible .scene-title {
-    opacity: 1;
-    transform: translateY(0);
-}
-
-@media (max-width: 600px) {
-    .city-skyline { inset-inline: -12%; }
-    .scene-heading { top: 28px; }
-    .movement-hint { bottom: 18px; font-size: 11px; }
 }
