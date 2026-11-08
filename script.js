@@ -12,13 +12,14 @@ const settingsButton = document.getElementById("settings-button");
 const creditsButton = document.getElementById("credits-button");
 const exitButton = document.getElementById("exit-button");
 const transition = document.getElementById("scene-transition");
+const sceneTitle = document.getElementById("scene-title");
 const scene = document.getElementById("neocity-scene");
 const player = document.getElementById("player");
 
 mainContent.style.display = "none";
 document.body.style.overflow = "hidden";
 
-// Transition timings are centralized so future scene-title sequences can reuse them.
+// Centralized timings keep this sequence reusable for future scene titles.
 const SCENE_TRANSITION = Object.freeze({
     fadeToBlack: 1800,
     titleFadeIn: 900,
@@ -30,6 +31,18 @@ const SCENE_TRANSITION = Object.freeze({
 
 const wait = (milliseconds) =>
     new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+
+function animateOpacity(element, from, to, duration, easing = "ease-in-out") {
+    element.style.opacity = String(from);
+    const animation = element.animate(
+        [{ opacity: from }, { opacity: to }],
+        { duration, easing, fill: "forwards" }
+    );
+    return animation.finished.then(() => {
+        element.style.opacity = String(to);
+        animation.cancel();
+    });
+}
 
 let transitionStarted = false;
 let gameplayReady = false;
@@ -46,37 +59,40 @@ async function playSceneTitleTransition({ title, nextScene }) {
     transitionStarted = true;
     startButton.disabled = true;
 
-    transition.querySelector(".scene-title").textContent = title;
+    sceneTitle.textContent = title;
     transition.style.display = "flex";
-    // Force the hidden starting state to be committed before beginning the fade.
-    transition.getBoundingClientRect();
-    requestAnimationFrame(() => transition.classList.add("is-opaque"));
-    await wait(SCENE_TRANSITION.fadeToBlack);
+    transition.style.opacity = "0";
+    sceneTitle.style.opacity = "0";
+    // Wait a frame so the overlay is painted before fading it up from black.
+    await new Promise((resolve) => requestAnimationFrame(resolve));
 
-    transition.classList.add("show-title");
-    await wait(SCENE_TRANSITION.titleFadeIn + SCENE_TRANSITION.titleHold);
-    transition.classList.remove("show-title");
-    await wait(SCENE_TRANSITION.titleFadeOut);
+    // Fade the complete menu and screen to true pitch black.
+    await animateOpacity(transition, 0, 1, SCENE_TRANSITION.fadeToBlack);
+
+    // Reveal the title over the opaque black overlay, then fade only the title away.
+    await animateOpacity(sceneTitle, 0, 1, SCENE_TRANSITION.titleFadeIn);
+    await wait(SCENE_TRANSITION.titleHold);
+    await animateOpacity(sceneTitle, 1, 0, SCENE_TRANSITION.titleFadeOut);
     await wait(SCENE_TRANSITION.blackPause);
 
-    // Bring up the destination underneath the fully opaque black overlay.
+    // Show the destination beneath the still-opaque overlay.
     loadingScreen.style.display = "none";
     mainContent.style.display = "block";
     nextScene.classList.add("is-active");
     placePlayerAtStart();
 
-    transition.classList.remove("is-opaque");
-    await wait(SCENE_TRANSITION.sceneFadeIn);
+    // Fade the overlay away to reveal the fully prepared gameplay scene.
+    await animateOpacity(transition, 1, 0, SCENE_TRANSITION.sceneFadeIn);
     transition.style.display = "none";
 
-    // Movement input is deliberately enabled only after the reveal has completed.
+    // Do not accept movement until the entire scene reveal has completed.
     gameplayReady = true;
     startMovementLoop();
 }
 
 startButton.addEventListener("click", () => {
     void playSceneTitleTransition({
-        title: "Lamasery - The Arrival",
+        title: "Planet Earth: 4.54 Billion Years Ago",
         nextScene: scene
     });
 });
