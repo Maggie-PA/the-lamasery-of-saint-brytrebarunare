@@ -1,83 +1,54 @@
 /* ======================================================
-   THE LAMASERY OF SAINT BRYTREBARUNARE
-   MAIN MENU + SIMPLE CSS-TRANSITION ARRIVAL SEQUENCE
+   MAIN MENU + START GAME CINEMATIC + BASIC MOVEMENT
 ====================================================== */
-
-console.log("Welcome to The Lamasery of Saint Brytrebarunare!");
 
 const loadingScreen = document.getElementById("loading-screen");
 const mainContent = document.getElementById("main-content");
 const startButton = document.getElementById("start-button");
+const sceneVisual = document.getElementById("scene-visual");
+const player = document.getElementById("player");
 const settingsButton = document.getElementById("settings-button");
 const creditsButton = document.getElementById("credits-button");
 const exitButton = document.getElementById("exit-button");
-const scene = document.getElementById("neocity-scene");
-const sceneVisual = document.getElementById("scene-visual");
-const player = document.getElementById("player");
 
-mainContent.style.display = "none";
-document.body.style.overflow = "hidden";
-
-const TIMING = Object.freeze({
-    fadeToBlack: 1800,
-    titleIn: 900,
-    titleHold: 2200,
-    titleOut: 850,
-    blackPause: 650,
-    sceneIn: 1800
-});
-const pause = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
+const TIMING = Object.freeze({ fadeToBlack: 1700, titleIn: 850, hold: 2200, titleOut: 800, blackPause: 500, fadeToScene: 1600 });
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 let started = false;
-let canMove = false;
-let frameId = 0;
-const pressed = new Set();
+let controlsReady = false;
+let frame = 0;
+const keys = new Set();
 const position = { x: 0, y: 0 };
-const directions = new Set([
-    "ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight",
-    "w", "a", "s", "d", "W", "A", "S", "D"
-]);
+const movementKeys = new Set(["ArrowUp", "ArrowDown", "ArrowLeft", "ArrowRight", "w", "a", "s", "d", "W", "A", "S", "D"]);
 
 function makeOverlay() {
     const overlay = document.createElement("div");
-    overlay.id = "cinematic-overlay";
-    overlay.style.cssText = [
-        "position:fixed", "inset:0", "z-index:2147483647",
-        "display:flex", "align-items:center", "justify-content:center",
-        "padding:24px", "background:#000000", "opacity:0",
-        `transition:opacity ${TIMING.fadeToBlack}ms ease-in-out`, "pointer-events:all"
-    ].join(";");
-
+    Object.assign(overlay.style, {
+        position: "fixed", inset: "0", zIndex: "2147483647", display: "grid",
+        placeItems: "center", padding: "24px", background: "#000", opacity: "0",
+        transition: `opacity ${TIMING.fadeToBlack}ms ease-in-out`, pointerEvents: "all"
+    });
     const title = document.createElement("h1");
     title.textContent = "Planet Earth: 4.54 Billion Years Ago";
-    title.style.cssText = [
-        "margin:0", "max-width:100%", "color:#eee8dc",
-        'font:400 clamp(28px,5vw,58px)/1.2 Georgia,"Times New Roman",serif',
-        "letter-spacing:.045em", "text-align:center",
-        "text-shadow:0 0 22px rgba(232,220,196,.14)",
-        "opacity:0", `transition:opacity ${TIMING.titleIn}ms ease-in-out`
-    ].join(";");
+    Object.assign(title.style, {
+        margin: "0", color: "#eee8dc", fontFamily: 'Georgia, "Times New Roman", serif',
+        fontSize: "clamp(28px, 5vw, 58px)", fontWeight: "400", lineHeight: "1.2",
+        textAlign: "center", opacity: "0", transition: `opacity ${TIMING.titleIn}ms ease-in-out`
+    });
     overlay.append(title);
     document.body.append(overlay);
     return { overlay, title };
 }
 
-function setOpacity(element, value, duration) {
+function changeOpacity(element, value, duration) {
     element.style.transitionDuration = `${duration}ms`;
     void element.offsetWidth;
     element.style.opacity = String(value);
 }
 
-function clampPlayerToScene() {
-    const maxX = Math.max(0, sceneVisual.clientWidth - player.offsetWidth);
-    const maxY = Math.max(0, sceneVisual.clientHeight - player.offsetHeight);
-    position.x = Math.max(0, Math.min(position.x, maxX));
-    position.y = Math.max(0, Math.min(position.y, maxY));
-}
-
-function placePlayer() {
-    position.x = Math.max(0, (sceneVisual.clientWidth - player.offsetWidth) / 2);
-    position.y = Math.max(0, sceneVisual.clientHeight - player.offsetHeight - 24);
+function positionPlayer() {
+    const bounds = sceneVisual.getBoundingClientRect();
+    position.x = Math.max(0, (bounds.width - player.offsetWidth) / 2);
+    position.y = Math.max(0, bounds.height - player.offsetHeight - 24);
     drawPlayer();
 }
 
@@ -86,21 +57,24 @@ function drawPlayer() {
     player.style.top = `${position.y}px`;
 }
 
-function runMovement(now) {
-    if (!canMove) return;
-    runMovement.previous ??= now;
-    const dt = Math.min((now - runMovement.previous) / 1000, 0.05);
-    runMovement.previous = now;
-    const step = 220 * dt;
+function keepPlayerInScene() {
+    const bounds = sceneVisual.getBoundingClientRect();
+    position.x = Math.max(0, Math.min(position.x, bounds.width - player.offsetWidth));
+    position.y = Math.max(0, Math.min(position.y, bounds.height - player.offsetHeight));
+}
 
-    if (pressed.has("ArrowUp") || pressed.has("w") || pressed.has("W")) position.y -= step;
-    if (pressed.has("ArrowDown") || pressed.has("s") || pressed.has("S")) position.y += step;
-    if (pressed.has("ArrowLeft") || pressed.has("a") || pressed.has("A")) position.x -= step;
-    if (pressed.has("ArrowRight") || pressed.has("d") || pressed.has("D")) position.x += step;
-
-    clampPlayerToScene();
+function movePlayer(now) {
+    if (!controlsReady) return;
+    movePlayer.lastTime ??= now;
+    const step = 220 * Math.min((now - movePlayer.lastTime) / 1000, 0.05);
+    movePlayer.lastTime = now;
+    if (keys.has("ArrowUp") || keys.has("w") || keys.has("W")) position.y -= step;
+    if (keys.has("ArrowDown") || keys.has("s") || keys.has("S")) position.y += step;
+    if (keys.has("ArrowLeft") || keys.has("a") || keys.has("A")) position.x -= step;
+    if (keys.has("ArrowRight") || keys.has("d") || keys.has("D")) position.x += step;
+    keepPlayerInScene();
     drawPlayer();
-    frameId = requestAnimationFrame(runMovement);
+    frame = requestAnimationFrame(movePlayer);
 }
 
 async function startGame() {
@@ -109,50 +83,53 @@ async function startGame() {
     startButton.disabled = true;
     const { overlay, title } = makeOverlay();
 
-    setOpacity(overlay, 1, TIMING.fadeToBlack);
+    changeOpacity(overlay, 1, TIMING.fadeToBlack);
     loadingScreen.style.transition = `opacity ${TIMING.fadeToBlack}ms ease-in-out`;
     loadingScreen.style.opacity = "0";
-    await pause(TIMING.fadeToBlack);
+    await sleep(TIMING.fadeToBlack);
     loadingScreen.style.display = "none";
 
-    setOpacity(title, 1, TIMING.titleIn);
-    await pause(TIMING.titleIn + TIMING.titleHold);
-    setOpacity(title, 0, TIMING.titleOut);
-    await pause(TIMING.titleOut + TIMING.blackPause);
+    changeOpacity(title, 1, TIMING.titleIn);
+    await sleep(TIMING.titleIn + TIMING.hold);
+    changeOpacity(title, 0, TIMING.titleOut);
+    await sleep(TIMING.titleOut + TIMING.blackPause);
 
-    mainContent.style.display = "block";
-    scene.style.opacity = "1";
-    placePlayer();
-    await pause(100);
-
-    setOpacity(overlay, 0, TIMING.sceneIn);
-    await pause(TIMING.sceneIn);
+    mainContent.hidden = false;
+    positionPlayer();
+    await sleep(80);
+    changeOpacity(overlay, 0, TIMING.fadeToScene);
+    await sleep(TIMING.fadeToScene);
     overlay.remove();
 
-    canMove = true;
-    runMovement.previous = null;
-    frameId = requestAnimationFrame(runMovement);
+    controlsReady = true;
+    movePlayer.lastTime = null;
+    frame = requestAnimationFrame(movePlayer);
 }
 
-startButton.addEventListener("click", startGame, { once: true });
+startButton.addEventListener("click", () => {
+    startGame().catch((error) => console.error("Start sequence failed:", error));
+}, { once: true });
+
 document.addEventListener("keydown", (event) => {
-    if (!canMove || !directions.has(event.key)) return;
+    if (!controlsReady || !movementKeys.has(event.key)) return;
     event.preventDefault();
-    pressed.add(event.key);
+    keys.add(event.key);
 });
-document.addEventListener("keyup", (event) => pressed.delete(event.key));
-window.addEventListener("blur", () => pressed.clear());
+document.addEventListener("keyup", (event) => keys.delete(event.key));
+window.addEventListener("blur", () => keys.clear());
 window.addEventListener("resize", () => {
-    if (!canMove) return;
-    clampPlayerToScene();
+    if (!controlsReady) return;
+    keepPlayerInScene();
     drawPlayer();
 });
 
+// Use the photo only if that exact file exists in the local images directory.
+const backgroundTest = new Image();
+backgroundTest.onload = () => sceneVisual.classList.add("has-background-image");
+backgroundTest.src = "images/planet-earth-4-54-billion-years-ago.jpg";
+
 settingsButton.addEventListener("click", () => alert("Settings will be available soon."));
-creditsButton.addEventListener("click", () => alert(
-    "The Lamasery of Saint Brytrebarunare\n\n" +
-    "Created with imagination, code and a little bit of divine intervention."
-));
+creditsButton.addEventListener("click", () => alert("The Lamasery of Saint Brytrebarunare\n\nCreated with imagination, code and a little bit of divine intervention."));
 exitButton.addEventListener("click", () => {
     if (confirm("Do you want to leave The Lamasery?")) window.location.href = "about:blank";
 });

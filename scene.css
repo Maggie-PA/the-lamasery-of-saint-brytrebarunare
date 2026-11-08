@@ -1,6 +1,5 @@
 /* ======================================================
-   FULL-SCREEN GAME SCENE
-   Upper 70%: submitted planet image / lower 30%: dialogue
+   GAME SCENE: 70% IMAGE / 30% DIALOGUE
 ====================================================== */
 
 #main-content {
@@ -12,78 +11,77 @@
     background: #080b16;
 }
 
+#main-content[hidden] {
+    display: none !important;
+}
+
 .neocity-scene {
     position: absolute;
     inset: 0;
     display: grid;
     grid-template-rows: 70% 30%;
+    min-height: 0;
     overflow: hidden;
-    color: #eee8dc;
+    color: #f1e8dc;
     background: #080b16;
 }
 
-/* The supplied planet artwork fills the entire upper 70% area. */
 .scene-visual {
     position: relative;
     min-width: 0;
     min-height: 0;
     overflow: hidden;
     isolation: isolate;
-    background-color: #120b0b;
+    /* Image URL is relative to this CSS file. Gradient layers remain as fallback. */
+    background-color: #24100c;
     background-image:
-        linear-gradient(180deg, rgba(8, 8, 15, 0.06) 45%, rgba(8, 7, 12, 0.45) 100%),
+        radial-gradient(ellipse at 68% 42%, rgba(255, 166, 69, .38), transparent 35%),
+        radial-gradient(ellipse at 34% 64%, rgba(255, 210, 115, .26), transparent 28%),
+        linear-gradient(135deg, #090a12, #581d12 52%, #150c12);
+    background-position: center;
+    background-size: cover;
+}
+
+/* The supplied image should be saved at this exact path. */
+.scene-visual.has-background-image {
+    background-image:
+        linear-gradient(180deg, rgba(0, 0, 0, .04), rgba(0, 0, 0, .28)),
         url("images/planet-earth-4-54-billion-years-ago.jpg");
     background-position: center 45%;
     background-size: cover;
     background-repeat: no-repeat;
 }
 
-/* The uploaded planet is the scene art; hide the temporary city mockup. */
-.city-atmosphere,
-.city-moon,
-.city-skyline,
-.city-ground {
-    display: none;
-}
-
-.scene-visual::after {
+.scene-shading {
     position: absolute;
-    z-index: 1;
-    inset: 45% 0 0;
-    content: "";
+    inset: 0;
     pointer-events: none;
-    background: linear-gradient(180deg, transparent, rgba(6, 7, 14, 0.25));
+    background: linear-gradient(180deg, rgba(0, 0, 0, .1), transparent 38%, rgba(0, 0, 0, .22));
 }
 
 .scene-heading {
     position: absolute;
-    z-index: 3;
-    top: clamp(22px, 5vh, 58px);
-    left: clamp(22px, 5vw, 72px);
-    color: #fff4e6;
-    text-shadow: 0 2px 16px #08030a, 0 0 24px rgba(0, 0, 0, 0.65);
+    z-index: 2;
+    top: clamp(20px, 5vh, 58px);
+    left: clamp(20px, 5vw, 72px);
+    color: #fff2df;
+    text-shadow: 0 2px 18px #09040a, 0 0 24px rgba(0, 0, 0, .7);
 }
 
 .scene-kicker {
     margin-bottom: 8px;
     color: #f0c58f;
     font: 12px/1.4 Georgia, serif;
-    letter-spacing: 0.3em;
+    letter-spacing: .3em;
 }
 
 .scene-heading h1 {
-    font: 400 clamp(25px, 3.8vw, 46px)/1.1 Georgia, serif;
-    letter-spacing: 0.04em;
-}
-
-.scene-heading h1 span {
-    color: #f0d7c4;
-    font-style: italic;
+    font: 400 clamp(26px, 4vw, 48px)/1.1 Georgia, serif;
 }
 
 .player {
     position: absolute;
-    z-index: 4;
+    z-index: 3;
     width: 34px;
     height: 64px;
     pointer-events: none;
@@ -96,7 +94,7 @@
     width: 74px;
     height: 22px;
     border-radius: 50%;
-    background: rgba(225, 175, 111, 0.24);
+    background: rgba(255, 186, 111, .36);
     filter: blur(9px);
 }
 
@@ -107,8 +105,8 @@
     width: 15px;
     height: 15px;
     border-radius: 50%;
-    background: #d3b99a;
-    box-shadow: 0 0 11px rgba(240, 198, 142, 0.45);
+    background: #e2c4a0;
+    box-shadow: 0 0 11px rgba(255, 210, 150, .55);
 }
 
 .player-body {
@@ -117,80 +115,73 @@
     left: 6px;
     width: 24px;
     height: 39px;
-    border: 1px solid rgba(222, 190, 153, 0.58);
+    border: 1px solid rgba(222, 190, 153, .65);
     background: linear-gradient(90deg, #302a34, #73604d 50%, #302a34);
     clip-path: polygon(20% 0, 80% 0, 100% 100%, 0 100%);
 }
 
-/* Bottom 30% dialogue box with a soft golden glow around all edges. */
 .dialogue-panel {
     position: relative;
-    z-index: 5;
+    z-index: 4;
     display: flex;
     align-items: flex-start;
     justify-content: space-between;
     gap: 24px;
     min-width: 0;
     min-height: 0;
-    overflow-y: auto;
-    padding: clamp(20px, 3.2vw, 42px) clamp(22px, 5vw, 72px);
-    border: 1px solid rgba(235, 190, 126, 0.82);
+    overflow: auto;
+    padding: clamp(18px, 3vw, 40px) clamp(20px, 5vw, 72px);
+    border: 1px solid rgba(235, 190, 126, .9);
     background: linear-gradient(135deg, #20191c, #0b0c14 80%);
-    box-shadow:
-        0 0 9px rgba(255, 195, 115, 0.54),
-        0 0 25px rgba(255, 143, 63, 0.28),
-        inset 0 0 24px rgba(214, 150, 87, 0.1);
+    box-shadow: 0 0 10px rgba(255, 195, 115, .55), 0 0 28px rgba(255, 143, 63, .28), inset 0 0 24px rgba(214, 150, 87, .1);
 }
 
 .dialogue-panel::before {
     position: absolute;
     inset: 0;
-    border: 1px solid rgba(255, 224, 172, 0.36);
+    border: 1px solid rgba(255, 224, 172, .36);
     content: "";
     pointer-events: none;
-    box-shadow: inset 0 0 12px rgba(255, 193, 111, 0.16);
+    box-shadow: inset 0 0 14px rgba(255, 193, 111, .16);
 }
 
-.dialogue-content {
-    width: min(100%, 1000px);
-}
+.dialogue-content { width: min(100%, 1000px); }
 
 .dialogue-speaker {
     margin-bottom: 12px;
     color: #e9bd7e;
     font: 600 clamp(15px, 1.7vw, 19px)/1.3 Georgia, serif;
-    letter-spacing: 0.09em;
+    letter-spacing: .09em;
     text-transform: uppercase;
 }
 
 .dialogue-text {
     color: #f1e8dc;
-    font: 400 clamp(16px, 2vw, 23px)/1.65 Georgia, serif;
+    font: 400 clamp(16px, 2vw, 23px)/1.6 Georgia, serif;
 }
 
 .dialogue-hint {
     flex: 0 0 auto;
     align-self: flex-end;
-    color: rgba(232, 224, 212, 0.6);
+    color: rgba(232, 224, 212, .62);
     font: 12px/1.4 Georgia, serif;
-    letter-spacing: 0.06em;
+    letter-spacing: .06em;
     text-align: right;
 }
 
 @media (max-width: 700px) {
-    .scene-heading { top: 18px; left: 20px; }
-    .scene-kicker { font-size: 10px; }
     .dialogue-panel {
         flex-direction: column;
         justify-content: flex-start;
-        gap: 14px;
-        padding: 20px 22px;
+        gap: 12px;
+        padding: 18px 20px;
     }
+
     .dialogue-hint { align-self: flex-end; margin-top: auto; }
 }
 
 @media (max-height: 520px) {
-    .dialogue-panel { padding-top: 14px; padding-bottom: 14px; }
+    .dialogue-panel { padding-top: 12px; padding-bottom: 12px; }
     .dialogue-speaker { margin-bottom: 6px; }
-    .dialogue-text { line-height: 1.4; }
+    .dialogue-text { line-height: 1.35; }
 }

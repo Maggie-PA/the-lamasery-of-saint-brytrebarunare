@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>The Lamasery of Saint Brytrebarunare</title>
-    <link rel="stylesheet" href="style.css?v=20261108-8">
-    <link rel="stylesheet" href="scene.css?v=20261108-8">
-    <link rel="stylesheet" href="scene-fallback.css?v=20261108-8">
+    <link rel="stylesheet" href="style.css?v=20261108-9">
+    <link rel="stylesheet" href="scene.css?v=20261108-9">
 </head>
 <body>
+    <!-- Original main menu retained. -->
     <div id="loading-screen">
         <div class="light-overlay"></div>
         <div class="particles"><span></span><span></span><span></span><span></span><span></span></div>
@@ -28,22 +28,13 @@
         </div>
     </div>
 
-    <main id="main-content" aria-label="Game">
-        <section id="neocity-scene" class="neocity-scene" aria-label="NeoCity — Arrival">
+    <main id="main-content" aria-label="Game" hidden>
+        <section id="neocity-scene" class="neocity-scene" aria-label="Planet Earth, 4.54 billion years ago">
             <div class="scene-visual" id="scene-visual">
-                <div class="city-atmosphere" aria-hidden="true"></div>
-                <div class="city-moon" aria-hidden="true"></div>
-                <div class="city-skyline" aria-hidden="true">
-                    <div class="skyline-building building-one"></div>
-                    <div class="skyline-building building-two"></div>
-                    <div class="skyline-building building-three"></div>
-                    <div class="skyline-building building-four"></div>
-                    <div class="skyline-building building-five"></div>
-                </div>
-                <div class="city-ground" aria-hidden="true"></div>
+                <div class="scene-shading" aria-hidden="true"></div>
                 <header class="scene-heading">
-                    <p class="scene-kicker">THE INFINITE CITY</p>
-                    <h1>NeoCity <span>— Arrival</span></h1>
+                    <p class="scene-kicker">4.54 BILLION YEARS AGO</p>
+                    <h1>Planet Earth</h1>
                 </header>
                 <div id="player" class="player" role="img" aria-label="Player character">
                     <span class="player-glow"></span>
@@ -61,6 +52,6 @@
         </section>
     </main>
 
-    <script src="script.js?v=20261108-8"></script>
+    <script src="script.js?v=20261108-9"></script>
 </body>
 </html>
