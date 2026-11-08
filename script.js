@@ -11,14 +11,13 @@ const startButton = document.getElementById("start-button");
 const settingsButton = document.getElementById("settings-button");
 const creditsButton = document.getElementById("credits-button");
 const exitButton = document.getElementById("exit-button");
-const transition = document.getElementById("scene-transition");
-const sceneTitle = document.getElementById("scene-title");
 const scene = document.getElementById("neocity-scene");
 const player = document.getElementById("player");
 
 mainContent.style.display = "none";
 document.body.style.overflow = "hidden";
 
+// Keep all scene-title timings together so later transitions can reuse them.
 const SCENE_TRANSITION = Object.freeze({
     fadeToBlack: 1800,
     titleFadeIn: 900,
@@ -27,6 +26,59 @@ const SCENE_TRANSITION = Object.freeze({
     blackPause: 650,
     sceneFadeIn: 1800
 });
+
+const wait = (milliseconds) =>
+    new Promise((resolve) => window.setTimeout(resolve, milliseconds));
+
+function fade(element, from, to, duration) {
+    const animation = element.animate(
+        [{ opacity: from }, { opacity: to }],
+        { duration, easing: "ease-in-out", fill: "forwards" }
+    );
+
+    return animation.finished.then(() => {
+        element.style.opacity = String(to);
+        animation.cancel();
+    });
+}
+
+// Build the overlay at runtime and style it inline so this sequence does not
+// depend on a separately cached stylesheet or a class-name match.
+function createTransitionOverlay(titleText) {
+    const overlay = document.createElement("div");
+    Object.assign(overlay.style, {
+        position: "fixed",
+        inset: "0",
+        zIndex: "2147483647",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        padding: "24px",
+        backgroundColor: "#000000",
+        opacity: "0",
+        pointerEvents: "all"
+    });
+
+    const title = document.createElement("h1");
+    title.textContent = titleText;
+    Object.assign(title.style, {
+        maxWidth: "100%",
+        margin: "0",
+        color: "#eee8dc",
+        fontFamily: 'Georgia, "Times New Roman", serif',
+        fontSize: "clamp(28px, 5vw, 58px)",
+        fontWeight: "400",
+        lineHeight: "1.2",
+        letterSpacing: "0.045em",
+        textAlign: "center",
+        textShadow: "0 0 22px rgba(232, 220, 196, 0.14)",
+        opacity: "0"
+    });
+
+    overlay.append(title);
+    document.body.append(overlay);
+    return { overlay, title };
+}
 
 let transitionStarted = false;
 let gameplayReady = false;
@@ -73,44 +125,47 @@ function startMovementLoop() {
     animationFrame = requestAnimationFrame(update);
 }
 
-function beginStartGameSequence() {
+async function beginStartGameSequence() {
     if (transitionStarted) return;
     transitionStarted = true;
     startButton.disabled = true;
 
-    loadingScreen.style.transition = `opacity ${SCENE_TRANSITION.fadeToBlack}ms ease`;
+    const { overlay, title } = createTransitionOverlay(
+        "Planet Earth: 4.54 Billion Years Ago"
+    );
+
+    // Fade the menu away at the same time that the full-screen black overlay rises.
+    loadingScreen.style.transition = `opacity ${SCENE_TRANSITION.fadeToBlack}ms ease-in-out`;
     loadingScreen.style.opacity = "0";
+    await fade(overlay, 0, 1, SCENE_TRANSITION.fadeToBlack);
+    loadingScreen.style.display = "none";
 
-    sceneTitle.textContent = "Planet Earth: 4.54 Billion Years Ago";
-    transition.style.display = "flex";
-    transition.classList.remove("title-visible");
-    transition.classList.add("visible");
+    // Only begin showing the title after the overlay has reached full black.
+    await fade(title, 0, 1, SCENE_TRANSITION.titleFadeIn);
+    await wait(SCENE_TRANSITION.titleHold);
+    await fade(title, 1, 0, SCENE_TRANSITION.titleFadeOut);
+    await wait(SCENE_TRANSITION.blackPause);
 
-    requestAnimationFrame(() => {
-        transition.classList.add("title-visible");
-    });
+    // Prepare the destination under black, then reveal it by fading the overlay out.
+    mainContent.style.display = "block";
+    scene.style.transition = "none";
+    scene.style.opacity = "1";
+    scene.classList.add("is-active");
+    placePlayerAtStart();
+    await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+    await fade(overlay, 1, 0, SCENE_TRANSITION.sceneFadeIn);
+    overlay.remove();
 
-    setTimeout(() => {
-        transition.classList.remove("title-visible");
-    }, SCENE_TRANSITION.titleFadeIn + SCENE_TRANSITION.titleHold + SCENE_TRANSITION.titleFadeOut);
-
-    setTimeout(() => {
-        loadingScreen.style.display = "none";
-        mainContent.style.display = "block";
-        scene.classList.add("is-active");
-        placePlayerAtStart();
-
-        transition.classList.remove("visible");
-        transition.style.display = "none";
-
-        setTimeout(() => {
-            gameplayReady = true;
-            startMovementLoop();
-        }, SCENE_TRANSITION.blackPause);
-    }, SCENE_TRANSITION.fadeToBlack + SCENE_TRANSITION.titleFadeIn + SCENE_TRANSITION.titleHold + SCENE_TRANSITION.titleFadeOut + SCENE_TRANSITION.blackPause);
+    // Keyboard movement stays locked until the reveal animation has completed.
+    gameplayReady = true;
+    startMovementLoop();
 }
 
-startButton.addEventListener("click", beginStartGameSequence);
+startButton.addEventListener("click", () => {
+    void beginStartGameSequence().catch((error) => {
+        console.error("Could not complete the scene transition:", error);
+    });
+});
 
 document.addEventListener("keydown", (event) => {
     if (!gameplayReady || !movementKeys.has(event.key)) return;
@@ -118,10 +173,7 @@ document.addEventListener("keydown", (event) => {
     heldKeys.add(event.key);
 });
 
-document.addEventListener("keyup", (event) => {
-    heldKeys.delete(event.key);
-});
-
+document.addEventListener("keyup", (event) => heldKeys.delete(event.key));
 window.addEventListener("blur", () => heldKeys.clear());
 window.addEventListener("resize", () => {
     if (!gameplayReady) return;
