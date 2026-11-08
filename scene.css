@@ -11,9 +11,7 @@
     background: #080b16;
 }
 
-#main-content[hidden] {
-    display: none !important;
-}
+#main-content[hidden] { display: none !important; }
 
 .neocity-scene {
     position: absolute;
@@ -32,7 +30,7 @@
     min-height: 0;
     overflow: hidden;
     isolation: isolate;
-    /* Image URL is relative to this CSS file. Gradient layers remain as fallback. */
+    /* The planet image is in the repository root beside index.html and scene.css. */
     background-color: #24100c;
     background-image:
         radial-gradient(ellipse at 68% 42%, rgba(255, 166, 69, .38), transparent 35%),
@@ -42,11 +40,10 @@
     background-size: cover;
 }
 
-/* The supplied image should be saved at this exact path. */
 .scene-visual.has-background-image {
     background-image:
         linear-gradient(180deg, rgba(0, 0, 0, .04), rgba(0, 0, 0, .28)),
-        url("images/planet-earth-4-54-billion-years-ago.jpg");
+        url("planet-earth-4-54-billion-years-ago.jpg");
     background-position: center 45%;
     background-size: cover;
     background-repeat: no-repeat;
@@ -75,9 +72,7 @@
     letter-spacing: .3em;
 }
 
-.scene-heading h1 {
-    font: 400 clamp(26px, 4vw, 48px)/1.1 Georgia, serif;
-}
+.scene-heading h1 { font: 400 clamp(26px, 4vw, 48px)/1.1 Georgia, serif; }
 
 .player {
     position: absolute;
@@ -155,10 +150,7 @@
     text-transform: uppercase;
 }
 
-.dialogue-text {
-    color: #f1e8dc;
-    font: 400 clamp(16px, 2vw, 23px)/1.6 Georgia, serif;
-}
+.dialogue-text { color: #f1e8dc; font: 400 clamp(16px, 2vw, 23px)/1.6 Georgia, serif; }
 
 .dialogue-hint {
     flex: 0 0 auto;
@@ -170,13 +162,7 @@
 }
 
 @media (max-width: 700px) {
-    .dialogue-panel {
-        flex-direction: column;
-        justify-content: flex-start;
-        gap: 12px;
-        padding: 18px 20px;
-    }
-
+    .dialogue-panel { flex-direction: column; justify-content: flex-start; gap: 12px; padding: 18px 20px; }
     .dialogue-hint { align-self: flex-end; margin-top: auto; }
 }
 

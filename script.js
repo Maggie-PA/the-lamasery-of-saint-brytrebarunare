@@ -123,10 +123,11 @@ window.addEventListener("resize", () => {
     drawPlayer();
 });
 
-// Use the photo only if that exact file exists in the local images directory.
+// The planet image is in the project root, beside index.html.
 const backgroundTest = new Image();
 backgroundTest.onload = () => sceneVisual.classList.add("has-background-image");
-backgroundTest.src = "images/planet-earth-4-54-billion-years-ago.jpg";
+backgroundTest.onerror = () => console.error("Could not load planet background at ./planet-earth-4-54-billion-years-ago.jpg");
+backgroundTest.src = "planet-earth-4-54-billion-years-ago.jpg";
 
 settingsButton.addEventListener("click", () => alert("Settings will be available soon."));
 creditsButton.addEventListener("click", () => alert("The Lamasery of Saint Brytrebarunare\n\nCreated with imagination, code and a little bit of divine intervention."));
